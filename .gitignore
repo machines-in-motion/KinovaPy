@@ -1,0 +1,10 @@
+*.DS_Store
+*.py.swp
+*.pyc
+.vscode
+.ipynb_checkpoints
+MUJOCO_LOG.TXT
+
+build/
+dist/
+*.egg-info/
