@@ -49,7 +49,7 @@
     <parent link="base_link" />
     <child link="shoulder_link" />
     <axis xyz="0 0 1" />
-    <limit effort="39" velocity="1.3963" />
+    <limit lower="-1.57" upper="1.57" effort="39" velocity="1.3963" />
   </joint>
   <link name="half_arm_1_link">
     <inertial>
@@ -78,7 +78,7 @@
     <parent link="shoulder_link" />
     <child link="half_arm_1_link" />
     <axis xyz="0 0 1" />
-    <limit lower="-2.24" upper="2.24" effort="39" velocity="1.3963" />
+    <limit lower="-0.79" upper="1.57" effort="39" velocity="1.3963" />
   </joint>
   <link name="half_arm_2_link">
     <inertial>
@@ -107,7 +107,7 @@
     <parent link="half_arm_1_link" />
     <child link="half_arm_2_link" />
     <axis xyz="0 0 1" />
-    <limit effort="39" velocity="1.3963" />
+    <limit lower="-6.28" upper="6.28" effort="39" velocity="1.3963" />
   </joint>
   <link name="forearm_link">
     <inertial>
@@ -165,7 +165,7 @@
     <parent link="forearm_link" />
     <child link="spherical_wrist_1_link" />
     <axis xyz="0 0 1" />
-    <limit effort="9" velocity="1.2218" />
+    <limit lower="-6.28" upper="6.28" effort="9" velocity="1.2218" />
   </joint>
   <link name="spherical_wrist_2_link">
     <inertial>
@@ -223,7 +223,7 @@
     <parent link="spherical_wrist_2_link" />
     <child link="bracelet_link" />
     <axis xyz="0 0 1" />
-    <limit effort="9" velocity="1.2218" />
+    <limit lower="-6.28" upper="6.28" effort="9" velocity="1.2218" />
   </joint>
   <link name="end_effector_link">
     <inertial>

@@ -12,3 +12,7 @@ pip install -e .
 
 ## Examples
 See the examples notebooks
+
+
+## Real robot
+Robot's default IP address: `192.168.1.10`

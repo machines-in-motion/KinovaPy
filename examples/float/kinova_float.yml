@@ -1,0 +1,129 @@
+### MPC setup ###
+
+# Mujoco parameters
+sim_time: 20.  # s
+dt_sim: 0.001  # simulation timestep [s]
+deadtime: 1.0  # s
+sync: True     # True: MPC waits for all robot steps, False: MPC checks time
+render: True
+render_fps: 25 # Hz
+cam_dist: 1.0
+cam_azimuth: 180
+cam_elevation: -30
+cam_lookat: [2., 0., 1.]
+
+# Initial configuration (Hardware)
+q0_real: [0.0, 0.0, 3.14, 4.5, 0.0, -1.2, 1.57]
+
+# Initial configuration (Mujoco)
+q0_mj: [0.0, 0.0, 3.14, -1.8, 0.0, 0.6, 1.57]
+
+# Initial configuration (Pinocchio)
+q0:  [0.0, 0.0, 3.14, -1.8, 0.0, 0.6, 1.57]
+dq0: [0., 0., 0., 0., 0., 0., 0.]
+u0:  [0., 0., 0., 0., 0., 0., 0.]
+
+
+### MPC parameters ###
+dt_mpc: 0.02  # MPC timestep [s] can be a multiple of dt
+verbose: False
+debug: False
+
+# Solver parameters
+N_h: 10      # Horizon length [knots]
+dt: 0.02     # OCP integration step
+maxiter: 10  # Max number of iterations in solver
+tol: 1.e-6   # Termination tolerance in solver
+max_solve_time: 0.01  # < dt_mpc when run real-time
+max_qp_iters: 100
+mu_dynamic: 1000
+mu_constraint: 1000
+linesearch: True
+
+# PD gains
+pd_enable: True
+kp_ref: [100.0, 100.0, 100.0, 100.0, 50.0, 50.0, 10.0]
+kd_ref: [100.0, 100.0, 100.0, 100.0, 50.0, 50.0, 10.0]
+kp_scale: 1.0
+kd_scale: 0.05
+
+
+################
+### CONTACTS ###
+################
+contacts: []
+
+
+###################
+### CONSTRAINTS ###
+###################
+# select from: 'None', 'stateBox', 'ctrlBox', 'frameBox', 'frameCylinder', 'frameEllipsoid'/'frameEllipsoidRel'
+WHICH_CONSTRAINTS: ['stateBox', 'ctrlBox']
+
+# stateLowerLimit: 'DEFAULT' means Pinocchio values
+stateLowerLimit: 'DEFAULT' 
+# stateUpperLimit: 'DEFAULT' means Pinocchio values
+stateUpperLimit: 'DEFAULT' 
+# velocityLimit: 'DEFAULT' means no limit
+velocityLimit: 'DEFAULT' 
+velocityCoeff: 0.3
+# ctrlLimit: 'DEFAULT' means Pinocchio values
+ctrlLimit: 'DEFAULT' 
+ctrlCoeff: 0.5
+
+# 'frameBox'
+boxCstrFrameName:  ['end_effector_link']
+boxActive: True
+boxCenterXYZ:  [0.7, 0.0, 0.4]
+boxDimensions: [1.0, 1.0, 0.7]
+boxRefFrameName: ['base_link']  # needed for 'frameBoxRel'
+# 'frameCylinder'
+cylinderCstrFrameName:  ['end_effector_link']
+cylinderActive: True
+cylinderRadius: 0.2
+cylinderCenterXY: [0.6, 0.0]
+# 'frameEllipsoid'/'frameEllipsoidRel'
+ellipsoidCstrFrameName:  ['end_effector_link']
+ellipsoidActive: True
+ellipsoidDimensions: [0.2, 0.2, 1.e+6]
+ellipsoidCenterXYZ: [0.6, 0.0, 0]
+ellipsoidLimits: [1., 1.e+6]   # <1 inside, >1 outside
+ellipsoidRefFrameName: 'base_link'   # needed for 'frameEllipsoidRel'
+
+
+#############
+### COSTS ###
+#############
+# select from: 'stateReg', 'ctrlRegGrav', 'ctrlLim', 'stateLim', 'framePose'/'frameTran'/'frameRot'
+WHICH_COSTS: ['stateReg', 'ctrlRegGrav', 'framePose']
+
+# Cost function weights and activations
+# 'stateReg' : state regularization
+stateRegRef: 'DEFAULT' # 'DEFAULT' or 'TRACKING' or list
+stateRegWeights: [0., 0., 0., 0., 0., 0., 0.,
+                  1., 1., 1., 1., 1., 1., 1.]
+stateRegWeight: 10.
+stateRegWeightTerminal: 10.
+
+# 'ctrlRegGrav': torque regularization
+ctrlRegGravWeights:  [1., 1., 1., 1., 1., 1., 1.]
+ctrlRegGravWeight: 1.
+
+# 'stateLim'
+stateLimRef: 'DEFAULT' # 'DEFAULT' or 'TRACKING' or list
+coef_xlim: 1.
+stateLimWeights: [1., 1., 1., 1., 1., 1., 1.,
+                  1., 1., 1., 1., 1., 1., 1.]
+stateLimWeight: 1.
+
+# 'ctrlLim'
+ctrlLimRef: 'DEFAULT' # 'DEFAULT' or 'TRACKING' or list
+coef_ulim: 1.
+ctrlLimWeights:  [1., 1., 1., 1., 1., 1., 1.]
+ctrlLimWeight: 1.
+
+# 'framePose'/'frameTran'/'frameRot'
+endEffectorFrameName: ['end_effector_link']
+framePoseWeights: [5., 5., 5.,  2., 2., 2.]
+framePoseWeight: 10.
+framePoseWeightTerminal: 10.
