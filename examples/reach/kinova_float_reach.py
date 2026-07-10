@@ -24,7 +24,7 @@ SAVEDATA = "savedata" in sys.argv
 
 
 # Read YAML config file
-config_dir = os.path.join(CONFIG_PATH, 'kinova_float.yml')
+config_dir = os.path.join(CONFIG_PATH, 'kinova_reach.yml')
 config = load_yaml_file(config_dir)
 
 
@@ -51,7 +51,7 @@ if WITHPLOT or SAVEDATA:
   record = True
 else:
   record = False
-controller = KinovaMPC(rmodel, rdata, config, planner=None, record=record, mode=mode)
+controller = KinovaMPC(rmodel, rdata, config, planner=None, record=False, mode=mode)
 
 # Low-level control & safety
 kp = np.asarray(config['kp_scale'])*np.asarray(config['kp_ref'])
@@ -186,17 +186,6 @@ if not REAL:
   robot.close()
 
 
-# Trim data
-if record:
-  xs = controller.xs[:controller.i]
-  us = controller.us[:controller.i]
-  x_des = controller.x_des[:controller.i]
-  u_des = controller.u_des[:controller.i]
-  x_all = controller.x_all[:controller.i]
-  u_all = controller.u_all[:controller.i]
-  sol_stats = controller.sol_stats[:controller.i]
-
-
 # Final state
 q_final, v_final, u_final = controller.get_states(robot)
 # Forard Kinematics to get x,y,z,roll,pitch,yaw
@@ -215,8 +204,102 @@ print(f"Final end-effector pose: {p_final}")
 
 
 reach_pose = pose
+reach_rot = rot
+reach_pos = pos
+
+### Warmstart ###
+# Initial goal poses
+goals = [reach_pose]
+manipPlan = [ReachGoal(frameIds, goals)]*(config['N_h']+1)
+controller.warmstart(robot, manipPlan, None)
 
 
+### Simulation or Real ###
+if not REAL:
+  # Load Mujoco model
+  xml_name = 'scene_kinova.xml'
+  xml_path = os.path.join(SCENE_PATH, xml_name)
+  model = mujoco.MjModel.from_xml_path(xml_path)
+  data = mujoco.MjData(model)
+  ctrl_sim_ratio = round(config['dt_mpc']/config['dt_sim'])
+  robot = MjSim(model, config, u0=config['u0'], floatingbase=False)
+else:
+  robot.stop_command_stream()
+  time.sleep(1.0)
+  robot.move_to_home(q0=np.asarray(config['q0_real']))
+time.sleep(1.0)
+
+controller = KinovaMPC(rmodel, rdata, config, planner=None, record=True, mode=mode)
+
+### Start ###
+run_time = config['sim_time']
+start = input("\nPress [ENTER] to start...")
+print("\n---------------------------- Experiment running ----------------------------")
+
+start_time = time.perf_counter()
+
+# Send initial command
+q_des = q0.copy()
+dq_des = np.zeros(nq)
+tau_des = pin.computeGeneralizedGravity(rmodel, rdata, q_des)
+if not REAL:
+  cmd = MjSimCmd(tau_des, q_des, dq_des, kp, kd)
+  robot.start()
+  robot.set_cmd(cmd)
+else:
+  robot.start_command_stream(control_mode="TORQUE")
+  controller.send_command(robot, tau_des, q_des, dq_des, kp=kp, kd=kd)
+
+# Main loop
+while time.perf_counter()-start_time < run_time:
+  tic = time.perf_counter()
+  if config['sync'] and not REAL:
+    step_number = robot.step_counter
+
+  # Define task
+  goals = [reach_pose]
+  manipPlan = [ReachGoal(frameIds, goals)]*(config['N_h']+1)
+
+  # MPC
+  u_des, x_des = controller.update(robot, manipPlan=manipPlan)
+  tau_des = np.clip(u_des, umin, umax)
+  q_des = np.clip(x_des[:len(q0)], qmin, qmax)
+  dq_des = np.clip(x_des[len(q0):], dqmin, dqmax)
+  # q_des += np.array([0., 0., 0., 0., 0., 0., 0.])
+  # dq_des = np.zeros(nq)
+  # tau_des = pin.computeGeneralizedGravity(rmodel, rdata, q_des)
+
+  # Send joint torques, joint positions and velocities to robot
+  if not REAL:
+    cmd = MjSimCmd(tau_des, q_des, dq_des, kp, kd)
+    robot.set_cmd(cmd)
+  else:
+    controller.send_command(robot, tau_des, q_des, dq_des, kp=kp, kd=kd)
+
+  # Logger
+  if config['verbose']:
+    logger.debug(f'Solve time = {controller.mpc.solve_time:.4f}s')
+
+  # wait until next control step
+  if config['sync'] and not REAL:
+    while robot.step_counter < (step_number//ctrl_sim_ratio+1)*ctrl_sim_ratio:
+      time.sleep(0.0001)
+  else:
+    while time.perf_counter() - tic < controller.dt_mpc:
+      time.sleep(0.00001)
+if not REAL:
+  robot.close()
+
+
+# Trim data
+if record:
+  xs = controller.xs[:controller.i]
+  us = controller.us[:controller.i]
+  x_des = controller.x_des[:controller.i]
+  u_des = controller.u_des[:controller.i]
+  x_all = controller.x_all[:controller.i]
+  u_all = controller.u_all[:controller.i]
+  sol_stats = controller.sol_stats[:controller.i]
 
 # Stop robot
 if REAL:
@@ -235,9 +318,9 @@ if record:
 # Save data
 if SAVEDATA:
   import pandas as pd
-  data = np.concatenate([xs, us, x_des, u_des, sol_stats], axis=1)
+  data = np.concatenate([xs, us], axis=1)
   df = pd.DataFrame(data)
-  df.to_csv('data/kinova_xs_us_hs_xdes_udes_sol.csv')
+  df.to_csv('data/real_robot_data/kinova_xs_us_026.csv')
 
 
 # Plot the MPC solution

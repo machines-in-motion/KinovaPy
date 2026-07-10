@@ -115,9 +115,9 @@ for name in frameNames:
   logger.debug(f"Initial end-effector pose: {p0}")
 
 
-# Define reach pose for the end-effector
-reach_pos = np.array([0.3, 0.3, 0.2])
-reach_rot = pin.rpy.rpyToMatrix(np.array([np.pi, 0., np.pi/2.]))
+# TODO: Define reach pose for the end-effector
+reach_pos = np.array([ 3.e-1,  3.e-1,  3.e-1])  # x, y, z
+reach_rot = pin.rpy.rpyToMatrix(np.array([np.pi, 0., np.pi/2]))   # roll, pich, yaw
 reach_pose = pin.SE3(reach_rot, reach_pos)
 
 
@@ -186,10 +186,6 @@ while time.perf_counter()-start_time < run_time:
       time.sleep(0.00001)
 if not REAL:
   robot.close()
-else:
-  robot.stop_command_stream()
-  udp_connection.__exit__(None, None, None)
-  tcp_connection.__exit__(None, None, None)
 
 
 # Trim data
@@ -201,6 +197,28 @@ if record:
   x_all = controller.x_all[:controller.i]
   u_all = controller.u_all[:controller.i]
   sol_stats = controller.sol_stats[:controller.i]
+
+# Final state
+q_final, v_final, u_final = controller.get_states(robot)
+# Forard Kinematics to get x,y,z,roll,pitch,yaw
+pin.forwardKinematics(rmodel, rdata, q_final)
+pin.updateFramePlacements(rmodel, rdata)
+frameNames = config['endEffectorFrameName']
+name = frameNames[0]
+frameId = rmodel.getFrameId(name)  # end-effector frame id
+pose = rdata.oMf[frameId].copy()
+pos = rdata.oMf[frameId].translation.copy()
+rot = rdata.oMf[frameId].rotation.copy()
+rpy = pin.rpy.matrixToRpy(rot)
+p_final = np.concatenate([pos, rpy])
+print(f"Final configuration: {q_final}")
+print(f"Final end-effector pose: {p_final}")
+
+# Stop robot
+if REAL:
+  robot.stop_command_stream()
+  udp_connection.__exit__(None, None, None)
+  tcp_connection.__exit__(None, None, None)
 
 
 # Info
@@ -214,9 +232,9 @@ if record:
 # Save data
 if SAVEDATA:
   import pandas as pd
-  data = np.concatenate([xs, us, x_des, u_des, sol_stats], axis=1)
+  data = np.concatenate([xs, us], axis=1)
   df = pd.DataFrame(data)
-  df.to_csv('data/kinova_xs_us_hs_xdes_udes_sol.csv')
+  df.to_csv('data/kinova_xs_us.csv')
 
 
 # Plot the MPC solution

@@ -8,3 +8,4 @@ MUJOCO_LOG.TXT
 build/
 dist/
 *.egg-info/
+*.csv

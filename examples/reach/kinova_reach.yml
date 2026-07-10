@@ -124,6 +124,6 @@ ctrlLimWeight: 1.
 
 # 'framePose'/'frameTran'/'frameRot'
 endEffectorFrameName: ['end_effector_link']
-framePoseWeights: [8., 8., 8.,  5., 5., 5.]
+framePoseWeights: [10., 10., 10.,  5., 5., 5.]
 framePoseWeight: 10.
 framePoseWeightTerminal: 10.

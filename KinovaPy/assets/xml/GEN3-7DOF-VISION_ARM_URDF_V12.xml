@@ -45,7 +45,6 @@
                   <joint name="joint_7" pos="0 0 0" axis="0 0 1" actuatorfrcrange="-9 9"/>
                   <geom type="mesh" rgba="0.75294 0.75294 0.75294 1" mesh="bracelet_with_vision_link"/>
                   <body name="end_effector_link" pos="0 0 -0.061525" quat="0 1 0 0">
-                    <joint name="end_effector" type="fixed"/>
                     <body name="camera_link" pos="0 0.05639 -0.00305" quat="0 1 0 0">
                       <body name="camera_depth_frame" pos="0.0275 0.066 -0.00305" quat="0 1 0 0"/>
                       <body name="camera_color_frame" pos="0 0.05639 -0.00305" quat="0 1 0 0"/>
