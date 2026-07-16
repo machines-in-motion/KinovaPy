@@ -4,6 +4,7 @@ import sys
 import time
 import mujoco
 import pinocchio as pin
+import pyspacemouse
 
 from locompc.plan.manipulation import ReachGoal
 from locompc.sim.mujoco import MjSim, MjSimCmd
@@ -119,6 +120,8 @@ for name in frameNames:
 reach_pos = np.array([ 3.e-1,  3.e-1,  3.e-1])  # x, y, z
 reach_rot = pin.rpy.rpyToMatrix(np.array([np.pi, 0., np.pi/2]))   # roll, pich, yaw
 reach_pose = pin.SE3(reach_rot, reach_pos)
+
+
 
 
 ### Warmstart ###

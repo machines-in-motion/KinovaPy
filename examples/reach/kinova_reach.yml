@@ -1,7 +1,7 @@
 ### MPC setup ###
 
 # Mujoco parameters
-sim_time: 20.  # s
+sim_time: 100.  # s
 dt_sim: 0.001  # simulation timestep [s]
 deadtime: 1.0  # s
 sync: True     # True: MPC waits for all robot steps, False: MPC checks time
