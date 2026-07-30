@@ -34,15 +34,15 @@ def main():
         time.sleep(0.02)
         
         jk = 0
-        jl = 0.005
+        jl = 0.03
 
         direct = digital_cmd[0] #left button when wire faces away from you
         direct2 = digital_cmd[1] #right button when wire faces away from you
 
         if direct == 1:
-            motor.command(place=0, zoom=6, jk=jk, jl=jl, umph=0.05)
+            motor.command(place=0, zoom=2, jk=jk, jl=jl, umph=0.05)
         elif direct2 == 1:
-            motor.command(place=0, zoom=-6, jk=jk, jl=jl, umph=-0.05)
+            motor.command(place=0, zoom=-2, jk=jk, jl=jl, umph=-0.05)
         else:
             motor.command(place=0.0, zoom=0.0,jk=jk, jl=jl, umph=0.0)
         

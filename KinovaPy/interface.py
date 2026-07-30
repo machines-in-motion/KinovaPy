@@ -28,7 +28,7 @@ class KinovaHardwareInterface:
         raise TypeError("Expected a Kortex RouterClient or a DeviceConnection wrapper")
 
     def __init__(self, router, router_real_time=None, torque_limits=None):
-        self.ACTION_TIMEOUT_DURATION = 20
+        self.ACTION_TIMEOUT_DURATION = 45
 
         router = self._normalize_router(router)
         router_real_time = self._normalize_router(router_real_time or router)

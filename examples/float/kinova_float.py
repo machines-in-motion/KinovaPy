@@ -81,6 +81,8 @@ else:
   router = tcp_connection.__enter__()
   router_real_time = udp_connection.__enter__()
   robot = KinovaHardwareInterface(router, router_real_time, torque_limits=umax)
+  q0, v0, u0 = controller.get_states(robot)
+  logger.debug(f'q0 = {q0}')
   robot.stop_command_stream()
   time.sleep(1.0)
   robot.move_to_home(q0=np.asarray(config['q0_real']))
@@ -181,7 +183,7 @@ while time.perf_counter()-start_time < run_time:
       time.sleep(0.0001)
   else:
     while time.perf_counter() - tic < controller.dt_mpc:
-      time.sleep(0.00001)
+      time.sleep(0.0001)
 if not REAL:
   robot.close()
 
