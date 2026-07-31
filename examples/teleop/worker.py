@@ -35,7 +35,6 @@ class Worker:
 
     def run(self):
         while self._running:
-            print("hello world")
             success, frame = cap.read()
             if not success:
                 print("unable to collect")

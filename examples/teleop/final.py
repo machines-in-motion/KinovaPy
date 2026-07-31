@@ -128,33 +128,43 @@ run_time = config['sim_time']
 start = input("\nPress [ENTER] to start...")
 print("\n---------------------------- Experiment running ----------------------------")
 
-# Joystick
+# Initialize Camera
+w = Worker()
+
+# Initialize Joystick
 spacemouse = SpaceMouseExpert()
 
-# Gripper
-# motor = Gim4305()
-# print("Enabling motor...")
-# motor.enable()
-# time.sleep(0.1)
-# motor.set_zero
+# Initialize Gripper
+motor = Gim4305()
+print("Enabling motor...")
+motor.enable()
+time.sleep(0.1)
+motor.set_zero
 
-# Camera thread
-w = Worker()
+# Start robot
+if not REAL:
+  kd *= 0.1
+  robot.start()
+else:
+  # Switch robot to torque control mode
+  robot.start_command_stream(control_mode="TORQUE")
+  # Stay at the initial pose for 2 seconds before recording
+  for _ in range(200):
+    u_des, x_des = controller.update(robot, manipPlan=manipPlan)
+    tau_des = np.clip(u_des, umin, umax)
+    q_des = np.clip(x_des[:len(q0)], qmin, qmax)
+    dq_des = np.clip(x_des[len(q0):], dqmin, dqmax)
+    controller.send_command(robot, tau_des, q_des, dq_des, kp=kp, kd=kd)
+    time.sleep(controller.dt_mpc)
+# Reset the robot data recording
+controller.i = 0
+logger.debug("Start recording")
+
+# Start Camera thread
 w.start()
 
-# Send initial command to robot
-q0, v0, u0 = controller.get_states(robot)
-q_des = q0.copy()
-dq_des = np.zeros(nq)
-tau_des = u0
-if not REAL:
-  cmd = MjSimCmd(tau_des, q_des, dq_des, kp, kd)
-  robot.start()
-  robot.set_cmd(cmd)
-else:
-  robot.start_command_stream(control_mode="TORQUE")
-  controller.send_command(robot, tau_des, q_des, dq_des, kp=kp, kd=kd)
 
+### Main loop ###
 start_time = time.perf_counter()
 try:
   while time.perf_counter()-start_time < run_time:
@@ -210,12 +220,12 @@ try:
     direct = digital_cmd[0] #left button when wire faces away from you
     direct2 = digital_cmd[1] #right button when wire faces away from you
 
-    # if direct == 1:
-    #   motor.command(place=0, zoom=6, jk=jk, jl=jl, umph=0.05)
-    # elif direct2 == 1:
-    #   motor.command(place=0, zoom=-6, jk=jk, jl=jl, umph=-0.05)
-    # else:
-    #   motor.command(place=0.0, zoom=0.0,jk=jk, jl=jl, umph=0.0)
+    if direct == 1:
+      motor.command(place=0, zoom=6, jk=jk, jl=jl, umph=0.05)
+    elif direct2 == 1:
+      motor.command(place=0, zoom=-6, jk=jk, jl=jl, umph=-0.05)
+    else:
+      motor.command(place=0.0, zoom=0.0,jk=jk, jl=jl, umph=0.0)
 
 
     # Logger
@@ -247,7 +257,7 @@ finally:
     udp_connection.__exit__(None, None, None)
     tcp_connection.__exit__(None, None, None)
     cv2.destroyAllWindows()
-    # motor.close()
+    motor.close()
   if not REAL:
     robot.close() 
 
@@ -281,6 +291,6 @@ if SAVEDATA:
 
 # Plot
 if WITHPLOT:
-  plot.plotFrameTrajectory(rmodel, xs, frameIds[0], None, label='End-effector')
   plot.plotJointTrajectory(xs, us, controller.dt_mpc, figTitle='Joint position & torque trajectory')
+  plot.plotFrameTrajectory(rmodel, xs, frameIds[0], None, label='End-effector')
   plot.plotSolutionVsActual(x_des, u_des, xs, us, controller.dt_mpc, joint_id=5)
