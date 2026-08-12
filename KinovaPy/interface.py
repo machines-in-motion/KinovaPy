@@ -262,7 +262,7 @@ class KinovaHardwareInterface:
         self._set_servoing_mode(Base_pb2.LOW_LEVEL_SERVOING)
 
         # Bang-bang parameters
-        vmax = 0.5  # rad/s commanded velocity magnitude
+        vmax = 0.7  # rad/s commanded velocity magnitude
         dt = 0.002   # control interval (s)
         tol = 1e-3  # rad tolerance
         max_time = self.ACTION_TIMEOUT_DURATION
@@ -395,7 +395,7 @@ class KinovaHardwareInterface:
             self.base_feedback = self.base_cyclic.Refresh(self.base_command, 0, self.send_option)
             return True
         except Exception as exc:
-            print(f"Failed to send command: {exc}")
+            #print(f"Failed to send command: {exc}")
             return False
 
     def set_command(self, desired_torque=None, desired_joint_position=None, desired_velocity=None,

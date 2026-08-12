@@ -60,9 +60,13 @@ class KinovaMPC:
         v = np.asarray(state['velocity'], dtype=float)
         u = np.asarray(state['torque'], dtype=float)
 
-    # wrap joint angles to [-pi, pi] for controller-level consistency
-    q = (q + np.pi) % (2.0 * np.pi) - np.pi
-
+    # wrap joint angles to [-pi, pi]
+    for i in [0,1,2,4]: # wrap to [-pi,pi]
+      q[i] = (q[i] + np.pi) % (2.0 * np.pi) - np.pi
+    for i in [3, 5]: # wrap to [-pi/2,3pi/2]
+      q[i] = (q[i] + np.pi/2) % (2.0 * np.pi) - np.pi/2.
+    for i in [6]: # wrap to [-3pi/2,pi/2]
+      q[i] = (q[i] + 3.0*np.pi/2.) % (2.0 * np.pi) - 3.*np.pi/2.
     return q, v, u
 
 

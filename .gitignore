@@ -1,6 +1,7 @@
 *.DS_Store
 *.py.swp
 *.pyc
+*.pt
 .vscode
 .ipynb_checkpoints
 MUJOCO_LOG.TXT
@@ -11,3 +12,5 @@ dist/
 *.csv
 *.log.txt
 *camera_data*
+*datasets*
+*data*

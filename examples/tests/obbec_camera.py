@@ -3,7 +3,7 @@ import threading
 import sys
 import queue
 from pathlib import Path
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise RuntimeError("could not open /dev/video0")
 #cv2.CAP_V4L2

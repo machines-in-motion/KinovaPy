@@ -28,21 +28,22 @@ def main():
 
     while time.perf_counter()-start_time < run_time:
         space_action, space_buttons = spacemouse0.get_action()
+        print("hello world")
         
         analog_cmd = space_action.tolist()
         digital_cmd = [space_buttons[0], space_buttons[1]]
         time.sleep(0.02)
         
         jk = 0
-        jl = 0.03
+        jl = 0.04
 
         direct = digital_cmd[0] #left button when wire faces away from you
         direct2 = digital_cmd[1] #right button when wire faces away from you
 
         if direct == 1:
-            motor.command(place=0, zoom=2, jk=jk, jl=jl, umph=0.05)
+            motor.command(place=0, zoom=2, jk=jk, jl=jl, umph=2)
         elif direct2 == 1:
-            motor.command(place=0, zoom=-2, jk=jk, jl=jl, umph=-0.05)
+            motor.command(place=0, zoom=-2, jk=jk, jl=jl, umph=-2)
         else:
             motor.command(place=0.0, zoom=0.0,jk=jk, jl=jl, umph=0.0)
         
